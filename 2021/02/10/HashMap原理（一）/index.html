@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat_fish_white_bones_32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat_fish_white_bones_16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"tech.bomboom.xyz","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文是HashMap原理及源码介绍的第一部分，主要内容包括：  Hash表的基本思想 哈希冲突的定义及常见解决方式 HashMap的Hash算法介绍">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HashMap原理（一）">
+<meta property="og:url" content="http://tech.bomboom.xyz/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/">
+<meta property="og:site_name" content="Larein">
+<meta property="og:description" content="本文是HashMap原理及源码介绍的第一部分，主要内容包括：  Hash表的基本思想 哈希冲突的定义及常见解决方式 HashMap的Hash算法介绍">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://tech.bomboom.xyz/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/HashTable.png">
+<meta property="og:image" content="http://tech.bomboom.xyz/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/linar.png">
+<meta property="og:image" content="http://tech.bomboom.xyz/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/linar_err_del.png">
+<meta property="og:image" content="http://tech.bomboom.xyz/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/linar_correct_del.png">
+<meta property="og:image" content="http://tech.bomboom.xyz/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/linked.png">
+<meta property="article:published_time" content="2021-02-10T06:27:11.000Z">
+<meta property="article:modified_time" content="2021-02-10T10:05:56.990Z">
+<meta property="article:tag" content="JAVA">
+<meta property="article:tag" content="JDK源码">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://tech.bomboom.xyz/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/HashTable.png">
+
+<link rel="canonical" href="http://tech.bomboom.xyz/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>HashMap原理（一） | Larein</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Larein</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tech.bomboom.xyz/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="JAVA 分布式 MySQL GO 开源">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Larein">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          HashMap原理（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-02-10 14:27:11 / 修改时间：18:05:56" itemprop="dateCreated datePublished" datetime="2021-02-10T14:27:11+08:00">2021-02-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/JAVA/" itemprop="url" rel="index"><span itemprop="name">JAVA</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/JAVA/JDK%E6%BA%90%E7%A0%81/" itemprop="url" rel="index"><span itemprop="name">JDK源码</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文是HashMap原理及源码介绍的第一部分，主要内容包括：</p>
+<ul>
+<li>Hash表的基本思想</li>
+<li>哈希冲突的定义及常见解决方式</li>
+<li>HashMap的Hash算法介绍</li>
+</ul>
+<a id="more"></a>
+
+<h1 id="一、背景"><a href="#一、背景" class="headerlink" title="一、背景"></a>一、背景</h1><p>本文及接下来的几篇文章，会详细介绍HashMap的原理及其实现。学习HashMap的收益主要有以下两点：</p>
+<ol>
+<li>散列表是一种常见的数据结构，阅读HashMap源码可以帮助扎实基础，理解经典算法解决特定场景问题时的设计思想。</li>
+<li>日常工作中HashMap是会高频被使用的数据结构，但是我们的使用真的是最高效的吗？在高QPS高负载的系统中，为了节省资源常常会压榨每一段代码的性能，了解HashMap的实现后可以再来审视自己的代码，是否在以最优的策略使用HashMap。</li>
+<li>HashMap相关问题是面试时高频出现的问题。</li>
+</ol>
+<h1 id="二、问题"><a href="#二、问题" class="headerlink" title="二、问题"></a>二、问题</h1><p>在正式介绍HashMap之前，我们先提出几个问题。这些问题会在接下来的篇幅中逐一解答：</p>
+<ol>
+<li>散列表是一种支持在O(1)时间复杂度，实现插入和查找的数据结构，是如何做到的？</li>
+<li>HashMap是如何解决Hash冲突的？</li>
+<li>HashMap的大小被规定必须是2的次幂，原因是什么？</li>
+</ol>
+<h1 id="三、哈希冲突"><a href="#三、哈希冲突" class="headerlink" title="三、哈希冲突"></a>三、哈希冲突</h1><p>在线性数据结构中，数组是支持随机存取的。给定数组的下标，可以直接读取或修改数组引用对应的内存地址 + 下标offset的内存地址的数据。散列表也正是利用了数组的这个特性实现了再O(1)复杂度下的插入和查找。</p>
+<p>对于一个类的实例，我们一般会选取其中的一个元素作为Key，对该Key做hash运算，得到一个非负整数，以此整数作为数组的下标，借助数组随机存取特性，找到相应的插入位置。如下图所示：<br><img src="/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/HashTable.png" alt="alt"></p>
+<p>假如我们现在有3个Key，但是现有数组只有存放2个Key的空间，如果这个3个Key都要放入这个数组中，一定会有两个Key存在“冲突”，即会争抢同一个位置，我们把这种冲突成为<strong>哈希冲突</strong>。除了空间的数量不够一定会造成冲突之外，Hash函数的计算方法，也会直接影响哈希冲突的概率。</p>
+<p>要解决Hash冲突有哪些常用的方法呢？</p>
+<h2 id="1-开放寻址法"><a href="#1-开放寻址法" class="headerlink" title="1. 开放寻址法"></a>1. 开放寻址法</h2><p>开放寻址法解决哈希冲突的方法是：如果常规方法找到的坑被占了，就尝试再找一个空闲的坑。<br>一个比较简单的开放寻址法叫做，<strong>线性探测</strong>：如果冲突了，就接着看数组下标的下一个位置是不是空闲，如果还不空闲就继续往下找，直到找到第一个空闲的位置为止。<br>如下图所示，当Key要插入到一个大小为5，且2，3，4下标都有元素的数组中，而hash(Key)函数计算的结果为2时，按照线性探测的方法，Key要放入数组下标为0的位置。</p>
+<p><img src="/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/linar.png" alt="alt"></p>
+<p>在线性探测的背景下，查找元素的算法和插入类似，我们先求Hash值，看看数组下标位置存放的值是否与Key相等，如果相等，表示元素已经找到。如果不相等，则继续往下一个位置寻找，直到遍历到数组中的空闲位置，还没有找到的话，则该元素不存在于哈希表中。</p>
+<p>那用线性探测法处理哈希冲突，要删除一个元素要如何做呢？我们首先当然要尝试找到Key在数组中对应的位置，在找到之后，我们并不能直接置空该元素，而是应该将该元素打上一个类似”Deleted”的Tag。因为如果我们直接把这个元素置空，该位置将被判定为一个空闲位置，而如果该位置后面的数组元素，也和该元素有相同的哈希值，按照上述的查找算法，到被删除元素这里，查找就会停止，导致后续的元素无法被查找到，这当然是无法接受的。所以在遇到被标记为“Deleted”的元素时，查找不应该停止，而应该继续往下进行。</p>
+<p>如下图所示，要删除Key2，如果标记为空闲，要查找Key3时，将会判定为不存在。<br><img src="/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/linar_err_del.png" alt="错误删除"></p>
+<p>正确的删除方式如下：<br><img src="/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/linar_correct_del.png" alt="正确删除"></p>
+<p>线性探测法的缺点比较明显，随着数组空闲空间的减少，哈希冲突的概率会变大。当哈希冲突变大时，哈希表的查询效率也会下降，最坏情况，需要O(n)的查找时间复杂度，即查找整个哈希表才可以找到目标数据。</p>
+<p>所以在HashMap中有一个属性，叫做装填因子（Load Factor）。</p>
+<p><code>哈希表装填因子 = 哈希表数组非空闲元素个数 / 哈希表数组大小</code></p>
+<p>在HashMap中，装填因子的默认值是0.75，如果装填因子过大，会增加哈希冲突的风险，进而降低哈希表的查找效率，如果装填因子设置的过小，又会造成空间的浪费。0.75是一个相对折中的值。HashMap也支持通过构造函数，指定装填因子的值：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Constructs an empty &lt;tt&gt;HashMap&lt;/tt&gt; with the specified initial</span></span><br><span class="line"><span class="comment"> * capacity and load factor.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>  initialCapacity the initial capacity</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>  loadFactor      the load factor</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> IllegalArgumentException if the initial capacity is negative</span></span><br><span class="line"><span class="comment"> *         or the load factor is nonpositive</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">HashMap</span><span class="params">(<span class="keyword">int</span> initialCapacity, <span class="keyword">float</span> loadFactor)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (initialCapacity &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;Illegal initial capacity: &quot;</span> +</span><br><span class="line">                                           initialCapacity);</span><br><span class="line">    <span class="keyword">if</span> (initialCapacity &gt; MAXIMUM_CAPACITY)</span><br><span class="line">        initialCapacity = MAXIMUM_CAPACITY;</span><br><span class="line">    <span class="keyword">if</span> (loadFactor &lt;= <span class="number">0</span> || Float.isNaN(loadFactor))</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;Illegal load factor: &quot;</span> +</span><br><span class="line">                                           loadFactor);</span><br><span class="line">    <span class="keyword">this</span>.loadFactor = loadFactor;</span><br><span class="line">    <span class="keyword">this</span>.threshold = tableSizeFor(initialCapacity);    <span class="comment">// initialCapacity * loadFactor</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面这个构造方法，支持在初始化时，指定数组的最大容量，以及装填因子。</p>
+<p>构造方法中的threshold，指的是装填因子 x 数组容量，当数组中元素的实际元素个数超过threshold时，哈希表将会执行resize的操作。resize的具体实现，我们放到后面的文章再说。在这里，大家需要了解到，当初始化HashMap时，最好考虑一下要放入HashMap的元素个数的上界在哪里，以这个数字除以期望的装填因子，来初始化HashMap的大小，避免HashMap进行resize，造成不必要的性能损耗。</p>
+<p>除了线性探测法，还有两种经典的开放寻址法：<strong>双重散列（Double Hashing）</strong> 和 <strong>二次探测（Quadratic Hashing）</strong>。</p>
+<p>双重散列解决冲突的方法是，当第一次hash(Key)计算出现冲突时，使用第二个哈希函数计算散列位置；而二次探测，和线性探测类似，区别是，不是寻找下标+1的数组位置，而是将当前下标加上以2为公比的等比数列，尝试找到下一个控线位置。</p>
+<p>而无论使用哪种线性探测的方法，装填因子都是一个重要的属性，当数组空间下降时，哈希冲突的概率会随之上升，而哈希表的查找性能随之下降。</p>
+<h2 id="2-链表法"><a href="#2-链表法" class="headerlink" title="2. 链表法"></a>2. 链表法</h2><p>HashMap是采用链表法去解决哈希冲突的。数组的每一个元素实际是一个链表的Header，当在数组的某一个位置发生哈希冲突时，冲突的元素会被挂在该链表的尾部。哈希表数组的每一个位置被称作“桶（Bucket）”或“槽（Slot）”。<br><img src="/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/linked.png" alt="链表法解决哈希冲突"></p>
+<p>看看HashMap中，Node的数据结构，可以看到，一个Node是Map.Entry的子类，当中除了Key，Value以及Hash值以外，还有一个next字段，就是用来用链表法解决哈希冲突的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Basic hash bin node, used for most entries.  (See below for</span></span><br><span class="line"><span class="comment">     * TreeNode subclass, and in LinkedHashMap for its Entry subclass.)</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Node</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt; <span class="keyword">implements</span> <span class="title">Map</span>.<span class="title">Entry</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt; </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> hash;</span><br><span class="line">        <span class="keyword">final</span> K key;</span><br><span class="line">        V value;</span><br><span class="line">        Node&lt;K,V&gt; next;</span><br><span class="line"></span><br><span class="line">        Node(<span class="keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; next) &#123;</span><br><span class="line">            <span class="keyword">this</span>.hash = hash;</span><br><span class="line">            <span class="keyword">this</span>.key = key;</span><br><span class="line">            <span class="keyword">this</span>.value = value;</span><br><span class="line">            <span class="keyword">this</span>.next = next;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> K <span class="title">getKey</span><span class="params">()</span>        </span>&#123; <span class="keyword">return</span> key; &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> V <span class="title">getValue</span><span class="params">()</span>      </span>&#123; <span class="keyword">return</span> value; &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> key + <span class="string">&quot;=&quot;</span> + value; &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">hashCode</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> Objects.hashCode(key) ^ Objects.hashCode(value);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> V <span class="title">setValue</span><span class="params">(V newValue)</span> </span>&#123;</span><br><span class="line">            V oldValue = value;</span><br><span class="line">            value = newValue;</span><br><span class="line">            <span class="keyword">return</span> oldValue;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(Object o)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (o == <span class="keyword">this</span>)</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">            <span class="keyword">if</span> (o <span class="keyword">instanceof</span> Map.Entry) &#123;</span><br><span class="line">                Map.Entry&lt;?,?&gt; e = (Map.Entry&lt;?,?&gt;)o;</span><br><span class="line">                <span class="keyword">if</span> (Objects.equals(key, e.getKey()) &amp;&amp;</span><br><span class="line">                    Objects.equals(value, e.getValue()))</span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>四、哈希值计算<br>上文提到，哈希函数的算法对哈希冲突的概率也有影响，</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/JAVA/" rel="tag"><i class="fa fa-tag"></i> JAVA</a>
+              <a href="/tags/JDK%E6%BA%90%E7%A0%81/" rel="tag"><i class="fa fa-tag"></i> JDK源码</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/01/24/Hexo/" rel="prev" title="Hello World">
+      <i class="fa fa-chevron-left"></i> Hello World
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">一、背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E9%97%AE%E9%A2%98"><span class="nav-number">2.</span> <span class="nav-text">二、问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%93%88%E5%B8%8C%E5%86%B2%E7%AA%81"><span class="nav-number">3.</span> <span class="nav-text">三、哈希冲突</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%BC%80%E6%94%BE%E5%AF%BB%E5%9D%80%E6%B3%95"><span class="nav-number">3.1.</span> <span class="nav-text">1. 开放寻址法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E9%93%BE%E8%A1%A8%E6%B3%95"><span class="nav-number">3.2.</span> <span class="nav-text">2. 链表法</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name"></p>
+  <div class="site-description" itemprop="description">JAVA 分布式 MySQL GO 开源</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-cat"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder"></span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,0' opacity='0.5' zIndex='-1' count='150' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/hijiki.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"log":false});</script></body>
+</html>
