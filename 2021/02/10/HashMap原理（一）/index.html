@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://tech.bomboom.xyz/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/linar_correct_del.png">
 <meta property="og:image" content="http://tech.bomboom.xyz/2021/02/10/HashMap%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/linked.png">
 <meta property="article:published_time" content="2021-02-10T06:27:11.000Z">
-<meta property="article:modified_time" content="2021-02-10T12:21:02.377Z">
+<meta property="article:modified_time" content="2021-02-17T03:20:50.384Z">
 <meta property="article:tag" content="JAVA">
 <meta property="article:tag" content="JDK源码">
 <meta name="twitter:card" content="summary">
@@ -189,10 +189,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2021-02-10 14:27:11 / 修改时间：20:21:02" itemprop="dateCreated datePublished" datetime="2021-02-10T14:27:11+08:00">2021-02-10</time>
+              <time title="创建时间：2021-02-10 14:27:11" itemprop="dateCreated datePublished" datetime="2021-02-10T14:27:11+08:00">2021-02-10</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-17 11:20:50" itemprop="dateModified" datetime="2021-02-17T11:20:50+08:00">2021-02-17</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -230,7 +236,7 @@
 </ul>
 <a id="more"></a>
 
-<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>本文及接下来的几篇文章，会详细介绍HashMap的原理及其实现。学习HashMap的收益主要有以下两点：</p>
+<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>本文及接下来的几篇文章，会详细介绍HashMap的原理及其实现。学习HashMap的收益主要有以下几点：</p>
 <ol>
 <li>散列表是一种常见的数据结构，阅读HashMap源码可以帮助扎实基础，理解经典算法解决特定场景问题时的设计思想。</li>
 <li>日常工作中HashMap是会高频被使用的数据结构，但是我们的使用真的是最高效的吗？在高QPS高负载的系统中，为了节省资源常常会压榨每一段代码的性能，了解HashMap的实现后可以再来审视自己的代码，是否在以最优的策略使用HashMap。</li>
