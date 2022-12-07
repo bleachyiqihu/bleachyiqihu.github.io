@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"bleachyiqihu.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="最短路径算法是用来求解图中两个顶点间最小路径的。 本文介绍两种常见的最短路径算法，Floyd算法和Dijkstra算法，并附上一道和最短路径算法相关的leetcode题目。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="最短路径算法">
+<meta property="og:url" content="https://bleachyiqihu.github.io/2022/12/05/networkDelayTime/">
+<meta property="og:site_name" content="Paul&#39;s blog">
+<meta property="og:description" content="最短路径算法是用来求解图中两个顶点间最小路径的。 本文介绍两种常见的最短路径算法，Floyd算法和Dijkstra算法，并附上一道和最短路径算法相关的leetcode题目。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bleachyiqihu.github.io/images/%E5%9B%BE.png">
+<meta property="og:image" content="https://bleachyiqihu.github.io/images/WechatIMG16.jpeg">
+<meta property="article:published_time" content="2022-12-05T00:38:53.000Z">
+<meta property="article:modified_time" content="2022-12-07T15:26:01.384Z">
+<meta property="article:author" content="Paul Chung">
+<meta property="article:tag" content="leetcode">
+<meta property="article:tag" content="图论">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bleachyiqihu.github.io/images/%E5%9B%BE.png">
+
+<link rel="canonical" href="https://bleachyiqihu.github.io/2022/12/05/networkDelayTime/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>最短路径算法 | Paul's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+<!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Paul's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://bleachyiqihu.github.io/2022/12/05/networkDelayTime/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Paul Chung">
+      <meta itemprop="description" content="技术学习笔记和生活感悟">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Paul's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          最短路径算法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-12-05 08:38:53" itemprop="dateCreated datePublished" datetime="2022-12-05T08:38:53+08:00">2022-12-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-07 23:26:01" itemprop="dateModified" datetime="2022-12-07T23:26:01+08:00">2022-12-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最短路径算法是用来求解图中两个顶点间最小路径的。</p>
+<p>本文介绍两种常见的最短路径算法，Floyd算法和Dijkstra算法，并附上一道和最短路径算法相关的leetcode题目。</p>
+<span id="more"></span>
+<h2 id="Floyd算法"><a href="#Floyd算法" class="headerlink" title="Floyd算法"></a>Floyd算法</h2><p>该算法使用于任何图，无向、有向、正权、负权都可以适用。唯一的限制是图必须有最短路径（无负环）。</p>
+<p>算法实现简单，但时间复杂度较高，为$O(N^3)$</p>
+<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>我们假设图中有N个节点，每个节点的编号分别为1，2，3，…，N。构建一个数组<code>f[k][x][y]</code>，含义是从x出发，中间只能经过1，2，…，k这些编号的节点，走到y节点的最短路径长度。特别的，<code>f[0][x][y]</code>的值被这样规定：若x，y之间有边，则<code>f[0][x][y]</code>为x到y的边权；若x，y之间没有边，则数组值为$\infty$；若x=y，则数组值为0。</p>
+<p>很明显，<code>f[N][x][y]</code>的值，就是x到y的最短路径长度。</p>
+<p>如果我们已知<code>f[k-1][x][y]</code>的值，如何推出<code>f[k][x][y]</code>的值呢？<code>f[k][x][y]</code>相较<code>f[k-1][x][y]</code>，相当于在x到达y的最短路径选择上，多出了k这个编号的节点，我们可以选择经过k，也可以选择不经过。如果不经过k，那么x到y的路径长度依旧是<code>f[k-1][x][y]</code>,如果经过k，那么x到y的路径长度为<code>f[k-1][x][k]+f[k-1][k][y]</code>。所以我们可以得到递推公式：</p>
+<script type="math/tex; mode=display">f[k][x][y] = \rm{min}(f[k-1][x][y], f[k-1][x][k] + f[k-1][k][y])</script><p>我们把<code>f[0][x][y]</code>按照规定初始化好之后，即可按上述递推公式，把<code>f[N][x][y]</code>求出。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">
+<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> k <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span> k <span class="token operator">&lt;=</span> <span class="token class-name">N</span><span class="token punctuation">;</span> k<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+	<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> x <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span> x <span class="token operator">&lt;=</span> <span class="token class-name">N</span><span class="token punctuation">;</span> x<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> y <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span> y <span class="token operator">&lt;=</span> <span class="token class-name">N</span><span class="token punctuation">;</span> y<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+			f<span class="token punctuation">[</span>k<span class="token punctuation">]</span><span class="token punctuation">[</span>x<span class="token punctuation">]</span><span class="token punctuation">[</span>y<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token class-name">Math</span><span class="token punctuation">.</span><span class="token function">min</span><span class="token punctuation">(</span>f<span class="token punctuation">[</span>k<span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">[</span>x<span class="token punctuation">]</span><span class="token punctuation">[</span>y<span class="token punctuation">]</span><span class="token punctuation">,</span> f<span class="token punctuation">[</span>k<span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">[</span>x<span class="token punctuation">]</span><span class="token punctuation">[</span>k<span class="token punctuation">]</span> <span class="token operator">+</span> f<span class="token punctuation">[</span>k<span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">[</span>k<span class="token punctuation">]</span><span class="token punctuation">[</span>y<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="空间优化"><a href="#空间优化" class="headerlink" title="空间优化"></a>空间优化</h3><p>按照上述思路，Floyd算法的时间复杂度为$O(N^3)$，空间复杂度也为$O(N^3)$。但实际<code>f[k][x][y]</code>的第一维是不需要的，每层k变量上的迭代，原地修改<code>f[x][y]</code>的值即可。代码可调整成</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">
+<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> k <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span> k <span class="token operator">&lt;=</span> <span class="token class-name">N</span><span class="token punctuation">;</span> k<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+	<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> x <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span> x <span class="token operator">&lt;=</span> <span class="token class-name">N</span><span class="token punctuation">;</span> x<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> y <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span> y <span class="token operator">&lt;=</span> <span class="token class-name">N</span><span class="token punctuation">;</span> y<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+			f<span class="token punctuation">[</span>x<span class="token punctuation">]</span><span class="token punctuation">[</span>y<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token class-name">Math</span><span class="token punctuation">.</span><span class="token function">min</span><span class="token punctuation">(</span>f<span class="token punctuation">[</span>x<span class="token punctuation">]</span><span class="token punctuation">[</span>y<span class="token punctuation">]</span><span class="token punctuation">,</span> f<span class="token punctuation">[</span>x<span class="token punctuation">]</span><span class="token punctuation">[</span>k<span class="token punctuation">]</span> <span class="token operator">+</span> f<span class="token punctuation">[</span>k<span class="token punctuation">]</span><span class="token punctuation">[</span>y<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>我们尝试证明此结论，假设当前迭代k = K，在求解<code>f[x][y]</code>的过程中，若<code>f[x][y] &lt; f[x][K] + f[K][y]</code>，则<code>f[x][y]</code>的值不变，也不会对后续求解产生影响。反之，<code>f[x][y]</code>会被覆盖为<code>f[x][K] + f[K][y]</code>，当且仅当x = K 或 y = K时，该覆盖才可能对本次迭代（k = K这层迭代）的求解产生影响，因为依赖求解的数组值的下标特点，要么第一个下标为K，要么第二个下标为K。而当x = K时，<code>f[K][y] = Math.min(f[K][y], f[K][K] + f[K][y]) = Math.min(f[K][y], f[K][y]) = f[K][y]</code>，同理当y = K时，<code>f[x][K] = f[x][K]</code>，两种情况其值都不会改变。不会对后续计算产生影响。</p>
+<p>优化后，Floyd算法的空间复杂度下降到$O(N^2)$.</p>
+<h2 id="Dijkstra算法"><a href="#Dijkstra算法" class="headerlink" title="Dijkstra算法"></a>Dijkstra算法</h2><h3 id="思路-1"><a href="#思路-1" class="headerlink" title="思路"></a>思路</h3><p>Dijkstra算法是一种解决固定出发点，求解该点到图中其他节点的最短路径的算法。Dijkstra算法只能应用于正权图中。</p>
+<p>Dijkstra算法把图中节点分为两类，一类是已经找到最短路径的节点（记为集合S），一类是尚未找到最短路径的节点（记为集合T）。在算法开始时，集合S为空集，图中所有节点均存在于集合T中。我们定义两个函数，一个为<code>D(n)</code>，表示节点a到节点n的最短路径长度；另一个为标记函数<script type="math/tex">dis_k(n)</script>，表示从a出发只包含S集合中节点，走到n节点的最短路径长度，k为算法迭代次数。<script type="math/tex">dis_0(a)</script>被初始化为0，其余节点的dis函数值，被初始化为$\infty$。</p>
+<p>Dijkstra算法需重复两个步骤：</p>
+<ol>
+<li>从集合T中选取dis函数值最小的节点，将其加入集合S；</li>
+<li>和最新加入集合S的节点邻接的所有节点，更新其dis函数的值。节点x和y的边权若记为<code>w(x, y)</code>，设最新加入集合S的节点为m，则更新的公式为<script type="math/tex; mode=display">dis_{k+1}(n) = \rm{min}(dis_k(n), dis_k(m) + w(m, n))</script></li>
+</ol>
+<p>直到T集合为空，算法结束。</p>
+<p>Dijkstra算法的时间复杂度为$O(N^2)$。空间复杂度为$O(N)$。</p>
+<h3 id="算法过程演示"><a href="#算法过程演示" class="headerlink" title="算法过程演示"></a>算法过程演示</h3><p><img src="/images/图.png" alt="case"></p>
+<ul>
+<li>初始化</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">节点</th>
+<th style="text-align:center">属于S</th>
+<th style="text-align:center">属于T</th>
+<th>$dis_0$</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">a</td>
+<td style="text-align:center">F</td>
+<td style="text-align:center">T</td>
+<td>0</td>
+</tr>
+<tr>
+<td style="text-align:center">b</td>
+<td style="text-align:center">F</td>
+<td style="text-align:center">T</td>
+<td>$\infty$</td>
+</tr>
+<tr>
+<td style="text-align:center">c</td>
+<td style="text-align:center">F</td>
+<td style="text-align:center">T</td>
+<td>$\infty$</td>
+</tr>
+<tr>
+<td style="text-align:center">d</td>
+<td style="text-align:center">F</td>
+<td style="text-align:center">T</td>
+<td>$\infty$</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>第一次迭代</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">节点</th>
+<th style="text-align:center">属于S</th>
+<th style="text-align:center">属于T</th>
+<th>$dis_1$</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">a</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">T</td>
+<td>0</td>
+</tr>
+<tr>
+<td style="text-align:center">b</td>
+<td style="text-align:center">F</td>
+<td style="text-align:center">T</td>
+<td>1</td>
+</tr>
+<tr>
+<td style="text-align:center">c</td>
+<td style="text-align:center">F</td>
+<td style="text-align:center">T</td>
+<td>2</td>
+</tr>
+<tr>
+<td style="text-align:center">d</td>
+<td style="text-align:center">F</td>
+<td style="text-align:center">T</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>第二次迭代</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">节点</th>
+<th style="text-align:center">属于S</th>
+<th style="text-align:center">属于T</th>
+<th>$dis_2$</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">a</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">T</td>
+<td>0</td>
+</tr>
+<tr>
+<td style="text-align:center">b</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">T</td>
+<td>1</td>
+</tr>
+<tr>
+<td style="text-align:center">c</td>
+<td style="text-align:center">F</td>
+<td style="text-align:center">T</td>
+<td>2</td>
+</tr>
+<tr>
+<td style="text-align:center">d</td>
+<td style="text-align:center">F</td>
+<td style="text-align:center">T</td>
+<td>6</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>第三次迭代</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">节点</th>
+<th style="text-align:center">属于S</th>
+<th style="text-align:center">属于T</th>
+<th>$dis_3$</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">a</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">T</td>
+<td>0</td>
+</tr>
+<tr>
+<td style="text-align:center">b</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">T</td>
+<td>1</td>
+</tr>
+<tr>
+<td style="text-align:center">c</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">T</td>
+<td>2</td>
+</tr>
+<tr>
+<td style="text-align:center">d</td>
+<td style="text-align:center">F</td>
+<td style="text-align:center">T</td>
+<td>6</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>第四次迭代</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">节点</th>
+<th style="text-align:center">属于S</th>
+<th style="text-align:center">属于T</th>
+<th>$dis_4$</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">a</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">T</td>
+<td>0</td>
+</tr>
+<tr>
+<td style="text-align:center">b</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">T</td>
+<td>1</td>
+</tr>
+<tr>
+<td style="text-align:center">c</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">T</td>
+<td>2</td>
+</tr>
+<tr>
+<td style="text-align:center">d</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">T</td>
+<td>6</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="证明"><a href="#证明" class="headerlink" title="证明"></a>证明</h3><p>下面证明Dijkstra算法的正确性。</p>
+<p>设a为起点，若证明，在第k次迭代：</p>
+<ul>
+<li>加入S中的节点v($v \neq a$)的标记是从a出发到v的最短路径长度</li>
+<li>不在S中的顶点标记是只包含S中顶点（不包含该节点）的从a到该顶点的最短路径长度</li>
+</ul>
+<p>用数学归纳法证明，当迭代数<code>k = 0</code>时，S为空集，a的标记值为0，其余节点的标记值为$\infty$，满足上述两点。</p>
+<p>设第k次迭代时，上述假设依旧成立。v为第k + 1次迭代加入S中的节点，那么v是第k次迭代结束后，T中标记值最小的节点，按照假设，标记值即为从a出发经过S集合中节点到v的最小路径，同时也是a到v的最小路径。如果该标记值不是a到v的最小路径，则一定存在一条a到v的通路，该通路经过不在S集合中的至少一个节点，且通路长度小于$dis_k(v)$。假设p为该通路上不在集合S中的第一个节点，则通路的长度可以表示为$dis_k(p) + d(p, v)$，其中<code>d(p, v)</code>表示p到v的最短路径长度。且以下不等式成立：</p>
+<script type="math/tex; mode=display">dis_k(p) + d(p, v) < dis_k(v)</script><p>由于该算法的使用场景为正权图，故<code>d(p, v)</code>一定大于0，所以一定存在$dis_k(p) &lt; dis_k(v)$，这与$dis_k(v)$为$dis_k(x)$中的最小值矛盾，故$dis_k(v)$即为a到v的最小路径长度。属性1得证。</p>
+<p>下面证明v加入S后，更新的标记值为从a出发经过集合S节点的最短路径长度。v加入S后，a到与v相邻节点的只包含S集合中节点的最小通路只有两种变化可能，要么经过v，要么不经过v。所以$dis_{k+1}(q) = \rm {min} (dis_k(q), dis_k(v) + w(v, q))$，其中q表示与v相邻的任意节点，该计算方法就是更新标记值的方法，故属性2得证。</p>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><blockquote>
+<p>有 n 个网络节点，标记为 1 到 n。</p>
+<p>给你一个列表 times，表示信号经过 有向 边的传递时间。 times[i] = (ui, vi, wi)，其中 ui 是源节点，vi 是目标节点， wi是一个信号从源节点传递到目标节点的时间。</p>
+<p>现在，从某个节点 K 发出一个信号。需要多久才能使所有节点都收到信号？如果不能使所有节点收到信号，返回 -1 。</p>
+</blockquote>
+<p><img src="/images/WechatIMG16.jpeg" alt="case"></p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>本题需要求出从节点K出发到其余各个节点的最短路径中的最大值。延时一定为正值，故为有向正权图，考虑使用Dijkstra算法求解最短路径长度。</p>
+<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java">
+<span class="token keyword">class</span> <span class="token class-name">Solution</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">int</span> <span class="token function">networkDelayTime</span><span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token punctuation">]</span> times<span class="token punctuation">,</span> <span class="token keyword">int</span> n<span class="token punctuation">,</span> <span class="token keyword">int</span> k<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    	<span class="token comment">// 求解过程中涉及无穷大的加法，为防止越界，设置为最大正整数的一半为正无穷</span>
+        <span class="token keyword">final</span> <span class="token keyword">int</span> <span class="token constant">INF</span> <span class="token operator">=</span> <span class="token class-name">Integer</span><span class="token punctuation">.</span><span class="token constant">MAX_VALUE</span> <span class="token operator">/</span> <span class="token number">2</span><span class="token punctuation">;</span>
+        <span class="token comment">// 存储图信息</span>
+        <span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token punctuation">]</span> g <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">int</span><span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">Arrays</span><span class="token punctuation">.</span><span class="token function">fill</span><span class="token punctuation">(</span>g<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token constant">INF</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> t <span class="token operator">:</span> times<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">int</span> x <span class="token operator">=</span> t<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> y <span class="token operator">=</span> t<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span>
+            g<span class="token punctuation">[</span>x<span class="token punctuation">]</span><span class="token punctuation">[</span>y<span class="token punctuation">]</span> <span class="token operator">=</span> t<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">// 存储标记值</span>
+        <span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> dist <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">int</span><span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token class-name">Arrays</span><span class="token punctuation">.</span><span class="token function">fill</span><span class="token punctuation">(</span>dist<span class="token punctuation">,</span> <span class="token constant">INF</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dist<span class="token punctuation">[</span>k <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">boolean</span><span class="token punctuation">[</span><span class="token punctuation">]</span> used <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">boolean</span><span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">int</span> x <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token comment">// 找到T集合中的最小标记值</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> y <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> y <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> <span class="token operator">++</span>y<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>used<span class="token punctuation">[</span>y<span class="token punctuation">]</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>x <span class="token operator">==</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token operator">||</span> dist<span class="token punctuation">[</span>y<span class="token punctuation">]</span> <span class="token operator">&lt;</span> dist<span class="token punctuation">[</span>x<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    x <span class="token operator">=</span> y<span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token comment">// 最小标记值放入集合S</span>
+            used<span class="token punctuation">[</span>x<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+            <span class="token comment">// 更新标记值</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> y <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> y <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> <span class="token operator">++</span>y<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                dist<span class="token punctuation">[</span>y<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token class-name">Math</span><span class="token punctuation">.</span><span class="token function">min</span><span class="token punctuation">(</span>dist<span class="token punctuation">[</span>y<span class="token punctuation">]</span><span class="token punctuation">,</span> dist<span class="token punctuation">[</span>x<span class="token punctuation">]</span> <span class="token operator">+</span> g<span class="token punctuation">[</span>x<span class="token punctuation">]</span><span class="token punctuation">[</span>y<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token keyword">int</span> ans <span class="token operator">=</span> <span class="token class-name">Arrays</span><span class="token punctuation">.</span><span class="token function">stream</span><span class="token punctuation">(</span>dist<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getAsInt</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> ans <span class="token operator">==</span> <span class="token constant">INF</span> <span class="token operator">?</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token operator">:</span> ans<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/leetcode/" rel="tag"># leetcode</a>
+              <a href="/tags/%E5%9B%BE%E8%AE%BA/" rel="tag"># 图论</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/12/04/hello-world/" rel="prev" title="第一篇博客">
+      <i class="fa fa-chevron-left"></i> 第一篇博客
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Floyd%E7%AE%97%E6%B3%95"><span class="nav-number">1.</span> <span class="nav-text">Floyd算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%9D%E8%B7%AF"><span class="nav-number">1.1.</span> <span class="nav-text">思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E4%BC%98%E5%8C%96"><span class="nav-number">1.2.</span> <span class="nav-text">空间优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dijkstra%E7%AE%97%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">Dijkstra算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%9D%E8%B7%AF-1"><span class="nav-number">2.1.</span> <span class="nav-text">思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E8%BF%87%E7%A8%8B%E6%BC%94%E7%A4%BA"><span class="nav-number">2.2.</span> <span class="nav-text">算法过程演示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%81%E6%98%8E"><span class="nav-number">2.3.</span> <span class="nav-text">证明</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B"><span class="nav-number">3.</span> <span class="nav-text">实例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90"><span class="nav-number">3.1.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81"><span class="nav-number">3.2.</span> <span class="nav-text">代码</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Paul Chung</p>
+  <div class="site-description" itemprop="description">技术学习笔记和生活感悟</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Paul Chung</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
