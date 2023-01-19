@@ -23,7 +23,7 @@
   <meta name="description" content="AQS类是JUC包中的一个基础类，全名是AbstractQueuedSynchronizer。该类使用一个state字段表示同步状态；用一个类CLH队列，管理因为没有获取到同步资源而被阻塞起来的线程。该类是JUC其他同步器（ReentrantLock，CountDownLatch，CyclicBarrier等）的实现基础，也是JUC包中的一个核心类。 本文作为AQS系列文章的第一篇，不打算深入AQ">
 <meta property="og:type" content="article">
 <meta property="og:title" content="AQS原理（一）- AQS锁要解决的问题及其设计思路">
-<meta property="og:url" content="https://bleachyiqihu.github.io/2023/01/16/AQS%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89-%E7%8B%AC%E5%8D%A0%E9%94%81%E8%8E%B7%E5%8F%96%E8%BF%87%E7%A8%8B/">
+<meta property="og:url" content="https://bleachyiqihu.github.io/2023/01/16/AQS%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89-%20AQS%E9%94%81%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98%E5%8F%8A%E5%85%B6%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/">
 <meta property="og:site_name" content="Paul&#39;s blog">
 <meta property="og:description" content="AQS类是JUC包中的一个基础类，全名是AbstractQueuedSynchronizer。该类使用一个state字段表示同步状态；用一个类CLH队列，管理因为没有获取到同步资源而被阻塞起来的线程。该类是JUC其他同步器（ReentrantLock，CountDownLatch，CyclicBarrier等）的实现基础，也是JUC包中的一个核心类。 本文作为AQS系列文章的第一篇，不打算深入AQ">
 <meta property="og:locale" content="zh_CN">
@@ -33,7 +33,7 @@
 <meta property="article:tag" content="-JUC -并发编程">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://bleachyiqihu.github.io/2023/01/16/AQS%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89-%E7%8B%AC%E5%8D%A0%E9%94%81%E8%8E%B7%E5%8F%96%E8%BF%87%E7%A8%8B/">
+<link rel="canonical" href="https://bleachyiqihu.github.io/2023/01/16/AQS%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89-%20AQS%E9%94%81%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98%E5%8F%8A%E5%85%B6%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/">
 
 
 <script id="page-configurations">
@@ -163,7 +163,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://bleachyiqihu.github.io/2023/01/16/AQS%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89-%E7%8B%AC%E5%8D%A0%E9%94%81%E8%8E%B7%E5%8F%96%E8%BF%87%E7%A8%8B/">
+    <link itemprop="mainEntityOfPage" href="https://bleachyiqihu.github.io/2023/01/16/AQS%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89-%20AQS%E9%94%81%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98%E5%8F%8A%E5%85%B6%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
