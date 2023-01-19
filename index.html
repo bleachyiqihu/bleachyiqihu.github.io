@@ -159,6 +159,94 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://bleachyiqihu.github.io/2023/01/16/AQS%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89-%E7%8B%AC%E5%8D%A0%E9%94%81%E8%8E%B7%E5%8F%96%E8%BF%87%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Paul Chung">
+      <meta itemprop="description" content="技术学习笔记和生活感悟">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Paul's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/01/16/AQS%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89-%E7%8B%AC%E5%8D%A0%E9%94%81%E8%8E%B7%E5%8F%96%E8%BF%87%E7%A8%8B/" class="post-title-link" itemprop="url">AQS原理（一）- AQS锁要解决的问题及其设计思路</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-01-16 11:43:54" itemprop="dateCreated datePublished" datetime="2023-01-16T11:43:54+08:00">2023-01-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-01-19 11:07:04" itemprop="dateModified" datetime="2023-01-19T11:07:04+08:00">2023-01-19</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">并发编程</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>AQS类是JUC包中的一个基础类，全名是AbstractQueuedSynchronizer。该类使用一个state字段表示同步状态；用一个类CLH队列，管理因为没有获取到同步资源而被阻塞起来的线程。该类是JUC其他同步器（ReentrantLock，CountDownLatch，CyclicBarrier等）的实现基础，也是JUC包中的一个核心类。</p>
+<p>本文作为AQS系列文章的第一篇，不打算深入AQS的实现细节，而是先聊一聊AQS要解决的问题以及设计思路。我们尝试在本篇文章中回答如下问题：</p>
+<ol>
+<li>AQS产生的背景</li>
+<li>AQS需要支持的场景/功能</li>
+<li>AQS的设计思路</li>
+<li>AQS的性能目标</li>
+</ol>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/01/16/AQS%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89-%E7%8B%AC%E5%8D%A0%E9%94%81%E8%8E%B7%E5%8F%96%E8%BF%87%E7%A8%8B/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://bleachyiqihu.github.io/2022/12/05/networkDelayTime/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -373,20 +461,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">3</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-count">5</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -413,7 +501,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2022</span>
+  <span itemprop="copyrightYear">2023</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
